@@ -1,6 +1,6 @@
 from sqlmodel import SQLModel, Field, Session, create_engine, Relationship, select, desc
 from fastapi import FastAPI, HTTPException, Depends
-import requests
+import httpx
 import os
 from dotenv import load_dotenv
 
@@ -78,7 +78,7 @@ def get_session():
         yield session
 
 
-def get_ai_category(description: str):
+async def get_ai_category(description: str):
     prompt = f'You are an automated warehouse parcel sorter. Your task is to read the item description and strictly determine its category from the following list: electronics, clothes, food. If the item does not fit any category, return the word unknown. Write ONLY one category name in lowercase letters in the response, without dots, quotes, or any explanations. Item description: {description}'
     payload = {
         'model': 'mistral-small-latest',
@@ -94,16 +94,18 @@ def get_ai_category(description: str):
         'Authorization': f'Bearer {api_key}'
     }
     try:
-        response = requests.post(url, json=payload, headers=headers, timeout=30)
-        if response.ok:
+        async with httpx.AsyncClient() as client:
+            response = await client.post(url, json=payload, headers=headers, timeout=30.0)
+
+        if response.status_code == 200:
             data = response.json()
             category = data['choices'][0]['message']['content'].strip()
             return category
         else:
             print(f"API Error: {response.status_code} - {response.text}")
             return 'unknown'
-    except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
-        print("Network issue with Hugging Face API")
+    except httpx.HTTPError:
+        print("Network issue with Mistral API")
         return 'unknown'
 
 
@@ -175,9 +177,9 @@ def delete_single_parcel(parcel_id: int, session: Session = Depends(get_session)
 
 
 @app.post('/parcels', response_model=ParcelRead)
-def create_parcel_endpoint(parcel_in: ParcelCreate, session: Session = Depends(get_session)):
+async def create_parcel_endpoint(parcel_in: ParcelCreate, session: Session = Depends(get_session)):
     parcel_db = Parcel(tracking_number=parcel_in.tracking_number, weight=parcel_in.weight, hub_id=parcel_in.hub_id, description=parcel_in.description)
-    parcel_db.category = get_ai_category(parcel_db.description)
+    parcel_db.category = await get_ai_category(parcel_db.description)
     session.add(parcel_db)
     session.commit()
     session.refresh(parcel_db)
