@@ -20,3 +20,9 @@ def setup():
     yield
     app.dependency_overrides.clear()
     SQLModel.metadata.drop_all(test_engine)
+
+
+@pytest.fixture
+async def get_client():
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        yield client
