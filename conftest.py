@@ -6,3 +6,8 @@ from hub_tracking import app, get_session
 
 
 test_engine = create_engine(url="sqlite:///:memory:", connect_args={"check_same_thread": False}, poolclass=StaticPool)
+
+
+def override_get_session():
+    with Session(test_engine) as session:
+        yield session
