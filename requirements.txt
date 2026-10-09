@@ -1,1 +1,7 @@
-fastapi, sqlmodel, uvicorn, requests, python-dotenv
+fastapi
+sqlmodel
+uvicorn
+requests
+python-dotenv
+httpx
+pytest
