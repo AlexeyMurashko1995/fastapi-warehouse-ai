@@ -23,3 +23,10 @@ async def test_read_single_hub_success(get_client):
     response = await get_client.get(url="/hubs/1")
     assert response.status_code == status.HTTP_200_OK
     assert response.json() == {"id": 1, "name": "Gdanski", "city": "Gdansk"}
+
+
+@pytest.mark.asyncio
+async def test_read_single_hub_failure(get_client):
+    response = await get_client.get("/hubs/999")
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+    assert response.json() == {"detail": "Hub not found"}
