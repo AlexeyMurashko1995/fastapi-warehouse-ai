@@ -1,3 +1,10 @@
 import pytest
 from httpx import AsyncClient
 from fastapi import status
+
+
+@pytest.mark.asyncio
+async def test_get_hubs(get_client):
+    response = await get_client.get(url="/hubs")
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == []
