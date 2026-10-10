@@ -8,3 +8,10 @@ async def test_get_hubs(get_client):
     response = await get_client.get(url="/hubs")
     assert response.status_code == status.HTTP_200_OK
     assert response.json() == []
+
+
+@pytest.mark.asyncio
+async def test_create_hub(get_client):
+    response = await get_client.post(url="/hubs", json={"name": "Gdanski", "city": "Gdansk"})
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == {"id": 1, "name": "Gdanski", "city": "Gdansk"}
