@@ -60,3 +60,15 @@ async def test_delete_single_parcel_failure(get_client):
     response = await get_client.delete(url="/parcels/999999")
     assert response.status_code == status.HTTP_404_NOT_FOUND
     assert response.json() == {"detail": "Parcel not found"}
+
+
+@pytest.mark.asyncio
+async def test_delete_single_parcel_success(get_client):
+    request_1 = await get_client.post(url="/hubs", json={"name": "Gdanski", "city": "Gdansk"})
+    request_2 = await get_client.post(url="/parcels", json={"tracking_number": "WA", "weight": 54.0, "description": "home", "hub_id": 1})
+    response = await get_client.delete("/parcels/1")
+    request = await get_client.get(url="/parcels/1")
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == {'status': 'success', 'message': 'Parcel 1 deleted successfully'}
+    assert request.status_code == status.HTTP_404_NOT_FOUND
+    assert request.json() == {"detail": "Parcel not found"}
