@@ -1,6 +1,13 @@
 import pytest
 from fastapi import status
-from httpx import AsyncClient
+
+HUB_PAYLOAD = {"name": "Gdanski", "city": "Gdansk"}
+PARCEL_PAYLOAD = {
+    "tracking_number": "WA",
+    "weight": 54.0,
+    "description": "home",
+    "hub_id": 1,
+}
 
 
 @pytest.mark.asyncio
@@ -12,21 +19,17 @@ async def test_get_hubs(get_client):
 
 @pytest.mark.asyncio
 async def test_create_hub(get_client):
-    response = await get_client.post(
-        url="/hubs", json={"name": "Gdanski", "city": "Gdansk"}
-    )
+    response = await get_client.post(url="/hubs", json=HUB_PAYLOAD)
     assert response.status_code == status.HTTP_200_OK
-    assert response.json() == {"id": 1, "name": "Gdanski", "city": "Gdansk"}
+    assert response.json() == {"id": 1, **HUB_PAYLOAD}
 
 
 @pytest.mark.asyncio
 async def test_read_single_hub_success(get_client):
-    await get_client.post(
-        url="/hubs", json={"name": "Gdanski", "city": "Gdansk"}
-    )
+    await get_client.post(url="/hubs", json=HUB_PAYLOAD)
     response = await get_client.get(url="/hubs/1")
     assert response.status_code == status.HTTP_200_OK
-    assert response.json() == {"id": 1, "name": "Gdanski", "city": "Gdansk"}
+    assert response.json() == {"id": 1, **HUB_PAYLOAD}
 
 
 @pytest.mark.asyncio
@@ -52,27 +55,14 @@ async def test_read_single_parcel_failure(get_client):
 
 @pytest.mark.asyncio
 async def test_read_single_parcel_success(get_client):
-    await get_client.post(
-        url="/hubs", json={"name": "Gdanski", "city": "Gdansk"}
-    )
-    await get_client.post(
-        url="/parcels",
-        json={
-            "tracking_number": "WA",
-            "weight": 54.0,
-            "description": "home",
-            "hub_id": 1,
-        },
-    )
+    await get_client.post(url="/hubs", json=HUB_PAYLOAD)
+    await get_client.post(url="/parcels", json=PARCEL_PAYLOAD)
     response = await get_client.get(url="/parcels/1")
     assert response.status_code == status.HTTP_200_OK
     assert response.json() == {
         "id": 1,
-        "tracking_number": "WA",
-        "weight": 54.0,
-        "description": "home",
+        **PARCEL_PAYLOAD,
         "category": "unknown",
-        "hub_id": 1,
     }
 
 
@@ -85,18 +75,8 @@ async def test_delete_single_parcel_failure(get_client):
 
 @pytest.mark.asyncio
 async def test_delete_single_parcel_success(get_client):
-    await get_client.post(
-        url="/hubs", json={"name": "Gdanski", "city": "Gdansk"}
-    )
-    await get_client.post(
-        url="/parcels",
-        json={
-            "tracking_number": "WA",
-            "weight": 54.0,
-            "description": "home",
-            "hub_id": 1,
-        },
-    )
+    await get_client.post(url="/hubs", json=HUB_PAYLOAD)
+    await get_client.post(url="/parcels", json=PARCEL_PAYLOAD)
     delete_response = await get_client.delete("/parcels/1")
     get_response = await get_client.get(url="/parcels/1")
 
