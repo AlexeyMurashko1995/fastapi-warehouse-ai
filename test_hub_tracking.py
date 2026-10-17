@@ -87,3 +87,12 @@ async def test_delete_single_parcel_success(get_client):
     }
     assert get_response.status_code == status.HTTP_404_NOT_FOUND
     assert get_response.json() == {"detail": "Parcel not found"}
+
+
+@pytest.mark.asyncio
+async def test_read_single_parcel_courier_success(get_client):
+    create_hub = await get_client.post("/hubs", json=HUB_PAYLOAD)
+    create_parcel = await get_client.post("/parcels", json=PARCEL_PAYLOAD)
+    response = await get_client.get("/parcels/1/public")
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == {"id": 1, "tracking_number": "WA", "description": "home", "hub_id": 1}
