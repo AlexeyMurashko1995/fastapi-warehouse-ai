@@ -123,3 +123,14 @@ async def test_read_hubs_by_city(get_client):
     assert response.status_code == status.HTTP_200_OK
     assert len(response.json()) == 1
     assert response.json()[0]["city"] == "Gdansk"
+
+
+@pytest.mark.asyncio
+async def test_read_parcels_by_weights(get_client):
+    create_hub = await get_client.post(url="/hubs", json=HUB_PAYLOAD)
+    request_1 = await get_client.post(url="/parcels", json={"tracking_number": "WA", "weight": 10.0, "description": "home", "hub_id": 1})
+    request_2 = await get_client.post(url="/parcels", json={"tracking_number": "WA", "weight": 50.0, "description": "home", "hub_id": 1})
+    response = await get_client.get(url="/parcels", params={"max_weight": 20})
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()) == 1
+    assert response.json()[0]["weight"] == 10
