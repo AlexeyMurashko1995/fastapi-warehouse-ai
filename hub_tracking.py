@@ -1,6 +1,7 @@
 import os
 
 from dotenv import load_dotenv
+from unittest.mock import patch
 from fastapi import Depends, FastAPI, HTTPException
 import httpx
 from sqlmodel import (

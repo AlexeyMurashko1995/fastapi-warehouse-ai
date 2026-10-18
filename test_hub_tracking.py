@@ -1,5 +1,6 @@
 import pytest
 from fastapi import status
+from unittest.mock import patch
 
 HUB_PAYLOAD = {"name": "Gdanski", "city": "Gdansk"}
 PARCEL_PAYLOAD = {
@@ -103,3 +104,12 @@ async def test_read_single_parcel_courier_failure(get_client):
     response = await get_client.get("/parcels/999/public")
     assert response.status_code == status.HTTP_404_NOT_FOUND
     assert response.json() == {"detail": "Parcel not found"}
+
+
+@pytest.mark.asyncio
+async def test_create_parcel_success(get_client):
+    request = await get_client.post(url="/hubs", json=HUB_PAYLOAD)
+    with patch("hub_tracking.get_ai_category", return_value="electronics"):
+        response = await get_client.post(url="/parcels", json=PARCEL_PAYLOAD)
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json()["category"] == "electronics"
