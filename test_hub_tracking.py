@@ -113,3 +113,13 @@ async def test_create_parcel_success(get_client):
         response = await get_client.post(url="/parcels", json=PARCEL_PAYLOAD)
         assert response.status_code == status.HTTP_200_OK
         assert response.json()["category"] == "electronics"
+
+
+@pytest.mark.asyncio
+async def test_read_hubs_by_city(get_client):
+    request_1 = await get_client.post(url="/hubs", json={"name": "Warsawski", "city": "Warsaw"})
+    request_2 = await get_client.post(url="/hubs", json={"name": "Gdanski", "city": "Gdansk"})
+    response = await get_client.get(url="/hubs", params={"city": "Gdansk"})
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()) == 1
+    assert response.json()[0]["city"] == "Gdansk"
